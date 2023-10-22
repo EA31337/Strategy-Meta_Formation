@@ -1,69 +1,68 @@
 /**
  * @file
- * Implements Order Limit meta strategy.
+ * Implements Formation meta strategy.
  */
 
 // Prevents processing this includes file multiple times.
-#ifndef STG_META_ORDER_LIMIT_MQH
-#define STG_META_ORDER_LIMIT_MQH
+#ifndef STG_META_FORMATION_MQH
+#define STG_META_FORMATION_MQH
 
 // User input params.
-INPUT2_GROUP("Meta Order Limit strategy: main params");
-INPUT2 ENUM_STRATEGY Meta_Order_Limit_Strategy = STRAT_DEMARKER;  // Strategy for order limits
-INPUT2_GROUP("Meta Order Limit strategy: common params");
-INPUT2 float Meta_Order_Limit_LotSize = 0;                // Lot size
-INPUT2 int Meta_Order_Limit_SignalOpenMethod = 0;         // Signal open method
-INPUT2 float Meta_Order_Limit_SignalOpenLevel = 0;        // Signal open level
-INPUT2 int Meta_Order_Limit_SignalOpenFilterMethod = 32;  // Signal open filter method
-INPUT2 int Meta_Order_Limit_SignalOpenFilterTime = 3;     // Signal open filter time (0-31)
-INPUT2 int Meta_Order_Limit_SignalOpenBoostMethod = 0;    // Signal open boost method
-INPUT2 int Meta_Order_Limit_SignalCloseMethod = 0;        // Signal close method
-INPUT2 int Meta_Order_Limit_SignalCloseFilter = 32;       // Signal close filter (-127-127)
-INPUT2 float Meta_Order_Limit_SignalCloseLevel = 0;       // Signal close level
-INPUT2 int Meta_Order_Limit_PriceStopMethod = 1;          // Price limit method
-INPUT2 float Meta_Order_Limit_PriceStopLevel = 2;         // Price limit level
-INPUT2 int Meta_Order_Limit_TickFilterMethod = 32;        // Tick filter method (0-255)
-INPUT2 float Meta_Order_Limit_MaxSpread = 4.0;            // Max spread to trade (in pips)
-INPUT2 short Meta_Order_Limit_Shift = 0;                  // Shift
-INPUT2 float Meta_Order_Limit_OrderCloseLoss = 200;       // Order close loss
-INPUT2 float Meta_Order_Limit_OrderCloseProfit = 200;     // Order close profit
-INPUT2 int Meta_Order_Limit_OrderCloseTime = 1440;        // Order close time in mins (>0) or bars (<0)
+INPUT2_GROUP("Meta Formation strategy: main params");
+INPUT2 ENUM_STRATEGY Meta_Formation_Strategy = STRAT_DEMARKER;  // Strategy for order limits
+INPUT2_GROUP("Meta Formation strategy: common params");
+INPUT2 float Meta_Formation_LotSize = 0;                // Lot size
+INPUT2 int Meta_Formation_SignalOpenMethod = 0;         // Signal open method
+INPUT2 float Meta_Formation_SignalOpenLevel = 0;        // Signal open level
+INPUT2 int Meta_Formation_SignalOpenFilterMethod = 32;  // Signal open filter method
+INPUT2 int Meta_Formation_SignalOpenFilterTime = 3;     // Signal open filter time (0-31)
+INPUT2 int Meta_Formation_SignalOpenBoostMethod = 0;    // Signal open boost method
+INPUT2 int Meta_Formation_SignalCloseMethod = 0;        // Signal close method
+INPUT2 int Meta_Formation_SignalCloseFilter = 32;       // Signal close filter (-127-127)
+INPUT2 float Meta_Formation_SignalCloseLevel = 0;       // Signal close level
+INPUT2 int Meta_Formation_PriceStopMethod = 1;          // Price limit method
+INPUT2 float Meta_Formation_PriceStopLevel = 2;         // Price limit level
+INPUT2 int Meta_Formation_TickFilterMethod = 32;        // Tick filter method (0-255)
+INPUT2 float Meta_Formation_MaxSpread = 4.0;            // Max spread to trade (in pips)
+INPUT2 short Meta_Formation_Shift = 0;                  // Shift
+INPUT2 float Meta_Formation_OrderCloseLoss = 200;       // Order close loss
+INPUT2 float Meta_Formation_OrderCloseProfit = 200;     // Order close profit
+INPUT2 int Meta_Formation_OrderCloseTime = 1440;        // Order close time in mins (>0) or bars (<0)
 
 // Structs.
 // Defines struct with default user strategy values.
-struct Stg_Meta_Order_Limit_Params_Defaults : StgParams {
-  Stg_Meta_Order_Limit_Params_Defaults()
-      : StgParams(::Meta_Order_Limit_SignalOpenMethod, ::Meta_Order_Limit_SignalOpenFilterMethod,
-                  ::Meta_Order_Limit_SignalOpenLevel, ::Meta_Order_Limit_SignalOpenBoostMethod,
-                  ::Meta_Order_Limit_SignalCloseMethod, ::Meta_Order_Limit_SignalCloseFilter,
-                  ::Meta_Order_Limit_SignalCloseLevel, ::Meta_Order_Limit_PriceStopMethod,
-                  ::Meta_Order_Limit_PriceStopLevel, ::Meta_Order_Limit_TickFilterMethod, ::Meta_Order_Limit_MaxSpread,
-                  ::Meta_Order_Limit_Shift) {
-    Set(STRAT_PARAM_LS, ::Meta_Order_Limit_LotSize);
-    Set(STRAT_PARAM_OCL, ::Meta_Order_Limit_OrderCloseLoss);
-    Set(STRAT_PARAM_OCP, ::Meta_Order_Limit_OrderCloseProfit);
-    Set(STRAT_PARAM_OCT, ::Meta_Order_Limit_OrderCloseTime);
-    Set(STRAT_PARAM_SOFT, ::Meta_Order_Limit_SignalOpenFilterTime);
+struct Stg_Meta_Formation_Params_Defaults : StgParams {
+  Stg_Meta_Formation_Params_Defaults()
+      : StgParams(::Meta_Formation_SignalOpenMethod, ::Meta_Formation_SignalOpenFilterMethod,
+                  ::Meta_Formation_SignalOpenLevel, ::Meta_Formation_SignalOpenBoostMethod,
+                  ::Meta_Formation_SignalCloseMethod, ::Meta_Formation_SignalCloseFilter,
+                  ::Meta_Formation_SignalCloseLevel, ::Meta_Formation_PriceStopMethod, ::Meta_Formation_PriceStopLevel,
+                  ::Meta_Formation_TickFilterMethod, ::Meta_Formation_MaxSpread, ::Meta_Formation_Shift) {
+    Set(STRAT_PARAM_LS, ::Meta_Formation_LotSize);
+    Set(STRAT_PARAM_OCL, ::Meta_Formation_OrderCloseLoss);
+    Set(STRAT_PARAM_OCP, ::Meta_Formation_OrderCloseProfit);
+    Set(STRAT_PARAM_OCT, ::Meta_Formation_OrderCloseTime);
+    Set(STRAT_PARAM_SOFT, ::Meta_Formation_SignalOpenFilterTime);
   }
 };
 
-class Stg_Meta_Order_Limit : public Strategy {
+class Stg_Meta_Formation : public Strategy {
  protected:
   DictStruct<long, Ref<Strategy>> strats;
   Trade strade;
 
  public:
-  Stg_Meta_Order_Limit(StgParams &_sparams, TradeParams &_tparams, ChartParams &_cparams, string _name = "")
+  Stg_Meta_Formation(StgParams &_sparams, TradeParams &_tparams, ChartParams &_cparams, string _name = "")
       : Strategy(_sparams, _tparams, _cparams, _name), strade(_tparams, _cparams) {}
 
-  static Stg_Meta_Order_Limit *Init(ENUM_TIMEFRAMES _tf = NULL, EA *_ea = NULL) {
+  static Stg_Meta_Formation *Init(ENUM_TIMEFRAMES _tf = NULL, EA *_ea = NULL) {
     // Initialize strategy initial values.
-    Stg_Meta_Order_Limit_Params_Defaults stg_meta_order_limit_defaults;
-    StgParams _stg_params(stg_meta_order_limit_defaults);
+    Stg_Meta_Formation_Params_Defaults stg_meta_formation_defaults;
+    StgParams _stg_params(stg_meta_formation_defaults);
     // Initialize Strategy instance.
     ChartParams _cparams(_tf, _Symbol);
     TradeParams _tparams;
-    Strategy *_strat = new Stg_Meta_Order_Limit(_stg_params, _tparams, _cparams, "(Meta) Order Limit");
+    Strategy *_strat = new Stg_Meta_Formation(_stg_params, _tparams, _cparams, "(Meta) Formation");
     return _strat;
   }
 
@@ -72,7 +71,7 @@ class Stg_Meta_Order_Limit : public Strategy {
    */
   void OnInit() {
     // Initialize strategies.
-    StrategyAdd(Meta_Order_Limit_Strategy, 0);
+    StrategyAdd(Meta_Formation_Strategy, 0);
   }
 
   /**
@@ -389,4 +388,4 @@ class Stg_Meta_Order_Limit : public Strategy {
   }
 };
 
-#endif  // STG_META_ORDER_LIMIT_MQH
+#endif  // STG_META_FORMATION_MQH

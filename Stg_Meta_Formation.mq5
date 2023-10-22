@@ -1,6 +1,6 @@
 /**
  * @file
- * Implements Order Limit meta strategy.
+ * Implements Formation meta strategy.
  */
 
 // Includes conditional compilation directives.
@@ -35,10 +35,10 @@ input bool Info_On_Chart = true;          // Display info on chart.
 #include "Stg_Meta_Formation.mqh"
 
 // Defines.
-#define ea_name "Strategy Meta Order Limit"
+#define ea_name "Strategy Meta Formation"
 #define ea_version "2.000"
-#define ea_desc "Order Limit meta strategy converts another strategy signals into pending orders."
-#define ea_link "https://github.com/EA31337/Strategy-Meta_Order_Limit"
+#define ea_desc "Formation meta strategy creates formation of pending orders on top of the existing strategy signals."
+#define ea_link "https://github.com/EA31337/Strategy-Meta_Formation"
 #define ea_author "EA31337 Ltd"
 
 // Properties.
@@ -64,7 +64,7 @@ int OnInit() {
   bool _result = true;
   EAParams ea_params(__FILE__, Log_Level);
   ea = new EA(ea_params);
-  _result &= ea.StrategyAdd<Stg_Meta_Order_Limit>(Active_Tfs);
+  _result &= ea.StrategyAdd<Stg_Meta_Formation>(Active_Tfs);
   return (_result ? INIT_SUCCEEDED : INIT_FAILED);
 }
 

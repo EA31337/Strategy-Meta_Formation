@@ -6,7 +6,7 @@
 
 /**
  * @file
- * Implements Order Limit meta strategy.
+ * Implements Formation meta strategy.
  */
 
 // Includes the main code.
