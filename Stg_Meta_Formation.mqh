@@ -7,9 +7,17 @@
 #ifndef STG_META_FORMATION_MQH
 #define STG_META_FORMATION_MQH
 
+// Enums.
+enum ENUM_STG_META_FORMATION_TYPE {
+  STG_META_FORMATION_TYPE_COS,  // Cosine
+  STG_META_FORMATION_TYPE_SIN,  // Sine
+};
+
 // User input params.
 INPUT2_GROUP("Meta Formation strategy: main params");
-INPUT2 ENUM_STRATEGY Meta_Formation_Strategy = STRAT_DEMARKER;  // Strategy for order limits
+INPUT2 ENUM_STRATEGY Meta_Formation_Strategy = STRAT_DEMARKER;                          // Strategy for order limits
+INPUT2 ENUM_STG_META_FORMATION_TYPE Meta_Formation_Type = STG_META_FORMATION_TYPE_COS;  // Type of formation
+INPUT2 int Meta_Formation_Size = 10;  // Formation size (number of pending orders per side)
 INPUT2_GROUP("Meta Formation strategy: common params");
 INPUT2 float Meta_Formation_LotSize = 0;                // Lot size
 INPUT2 int Meta_Formation_SignalOpenMethod = 0;         // Signal open method
@@ -46,8 +54,16 @@ struct Stg_Meta_Formation_Params_Defaults : StgParams {
   }
 };
 
+// Defines struct for formation entry.
+struct Stg_Meta_Formation_Entry {
+  bool needs_update;
+  double relative_price, target_price;
+  Order *_order;
+};
+
 class Stg_Meta_Formation : public Strategy {
  protected:
+  DictStruct<int, Stg_Meta_Formation_Entry> formation_long, formation_short;
   DictStruct<long, Ref<Strategy>> strats;
   Trade strade;
 
@@ -279,20 +295,12 @@ class Stg_Meta_Formation : public Strategy {
   }
 
   /**
-   * Gets symbol.
-   */
-  string GetSymbol(int _index) {
-    int _total_symbols = SymbolsTotal(true);
-    return SymbolName(_index, true);
-  }
-
-  /**
    * Process a trade request.
    *
    * @return
    *   Returns true on successful request.
    */
-  virtual bool TradeRequest(ENUM_ORDER_TYPE _cmd, Strategy *_strat = NULL, int _shift = 0) {
+  virtual bool TradeRequest(ENUM_ORDER_TYPE _cmd, int _shift = 0) {
     bool _result = false;
     double _offset =
         strade.GetChart().GetPointSize() * 50;  // Offset from the current price to place the order in points.
@@ -326,11 +334,61 @@ class Stg_Meta_Formation : public Strategy {
   }
 
   /**
+   * Updates a formation.
+   *
+   */
+  virtual void UpdateFormation() {
+    double coordinates_y[11];
+    // Define the diameter and the number of points
+    double _diameter = 10.0;                  // Change this to the desired diameter
+    int _num_points = ::Meta_Formation_Size;  // Number of points per diameter
+    // Calculate the coordinates
+    for (int i = 0; i < _num_points; i++) {
+      double y;
+      Stg_Meta_Formation_Entry _fentry_long, _fentry_short;
+      switch (::Meta_Formation_Type) {
+        case STG_META_FORMATION_TYPE_COS: {
+          double angle1 = i * 1.0 * M_PI / _num_points;
+          y = _diameter / 2 + _diameter / 2.0 * cos(angle1);
+        } break;
+        case STG_META_FORMATION_TYPE_SIN: {
+          double angle2 = i * 1.0 * M_PI / _num_points;
+          y = _diameter / 1.0 * sin(angle2);
+        } break;
+        default:
+          y = 0.0;
+          break;
+      }
+      _fentry_long.relative_price = y;
+      _fentry_short.relative_price = -y;
+      formation_long.Set(i, _fentry_long);
+      formation_short.Set(i, _fentry_short);
+      continue;
+    }
+  }
+
+  /**
    * Event on strategy's order open.
    */
   virtual void OnOrderOpen(OrderParams &_oparams) {
     // @todo: EA31337-classes/issues/723
     Strategy::OnOrderOpen(_oparams);
+  }
+
+  /**
+   * Event on new time periods.
+   */
+  virtual void OnPeriod(unsigned int _periods = DATETIME_NONE) {
+    if ((_periods & DATETIME_MINUTE) != 0) {
+      // New minute started.
+      UpdateFormation();
+    }
+    if ((_periods & DATETIME_HOUR) != 0) {
+      // New hour started.
+    }
+    if ((_periods & DATETIME_DAY) != 0) {
+      // New day started.
+    }
   }
 
   /**
@@ -360,22 +418,24 @@ class Stg_Meta_Formation : public Strategy {
    * Check strategy's opening signal.
    */
   bool SignalOpen(ENUM_ORDER_TYPE _cmd, int _method, float _level = 0.0f, int _shift = 0) {
-    bool _result = true, _result1 = false;
+    bool _result = true;
     // uint _ishift = _indi.GetShift();
     uint _ishift = _shift;
     // Process strategy.
     Ref<Strategy> _strat_ref = strats.GetByKey(0);
-    if (_strat_ref.IsSet()) {
-      _level = _level == 0.0f ? _strat_ref.Ptr().Get<float>(STRAT_PARAM_SOL) : _level;
-      _method = _method == 0 ? _strat_ref.Ptr().Get<int>(STRAT_PARAM_SOM) : _method;
-      _shift = _shift == 0 ? _strat_ref.Ptr().Get<int>(STRAT_PARAM_SHIFT) : _shift;
-      _result1 = _strat_ref.Ptr().SignalOpen(_cmd, _method, _level, _shift);
-      if (_result1) {
-        // @todo: Move to OnOrderOpen().
-        TradeRequest(_cmd, GetPointer(this), _shift);
-      }
+    if (!_strat_ref.IsSet()) {
+      // Returns false when strategy is not set.
+      return false;
     }
-    return _result && _result1;
+    _level = _level == 0.0f ? _strat_ref.Ptr().Get<float>(STRAT_PARAM_SOL) : _level;
+    _method = _method == 0 ? _strat_ref.Ptr().Get<int>(STRAT_PARAM_SOM) : _method;
+    _shift = _shift == 0 ? _strat_ref.Ptr().Get<int>(STRAT_PARAM_SHIFT) : _shift;
+    _result &= _strat_ref.Ptr().SignalOpen(_cmd, _method, _level, _shift);
+    if (_result) {
+      // @todo: Move to OnOrderOpen().
+      // TradeRequest(_cmd, GetPointer(this), _shift);
+    }
+    return _result;
   }
 
   /**
