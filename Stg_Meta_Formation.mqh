@@ -9,8 +9,10 @@
 
 // Enums.
 enum ENUM_STG_META_FORMATION_TYPE {
-  STG_META_FORMATION_TYPE_COS,  // Cosine
-  STG_META_FORMATION_TYPE_SIN,  // Sine
+  STG_META_FORMATION_TYPE_COS,   // Cosine
+  STG_META_FORMATION_TYPE_COSH,  // Cosine Hyperbolic
+  STG_META_FORMATION_TYPE_SIN,   // Sine
+  STG_META_FORMATION_TYPE_SINH,  // Sine Hyperbolic
 };
 
 // User input params.
@@ -347,14 +349,18 @@ class Stg_Meta_Formation : public Strategy {
       double y;
       Stg_Meta_Formation_Entry _fentry_long, _fentry_short;
       switch (::Meta_Formation_Type) {
-        case STG_META_FORMATION_TYPE_COS: {
-          double angle1 = i * 1.0 * M_PI / _num_points;
-          y = _diameter / 2 + _diameter / 2.0 * cos(angle1);
-        } break;
-        case STG_META_FORMATION_TYPE_SIN: {
-          double angle2 = i * 1.0 * M_PI / _num_points;
-          y = _diameter / 1.0 * sin(angle2);
-        } break;
+        case STG_META_FORMATION_TYPE_COS:
+          y = _diameter / 2 + _diameter / 2.0 * cos(i * 1.0 * M_PI / _num_points);
+          break;
+        case STG_META_FORMATION_TYPE_COSH:
+          y = _diameter / 2.0 * cosh(i * 1.0 * M_PI / _num_points);
+          break;
+        case STG_META_FORMATION_TYPE_SIN:
+          y = _diameter / 1.0 * sin(i * 1.0 * M_PI / _num_points);
+          break;
+        case STG_META_FORMATION_TYPE_SINH:
+          y = _diameter / 2.0 * sinh(i * 1.0 * M_PI / _num_points);
+          break;
         default:
           y = 0.0;
           break;
