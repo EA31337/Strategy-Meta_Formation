@@ -21,9 +21,9 @@ enum ENUM_STG_META_FORMATION_TYPE {
 
 // User input params.
 INPUT2_GROUP("Meta Formation strategy: main params");
-INPUT2 ENUM_STRATEGY Meta_Formation_Strategy = STRAT_DEMARKER;                          // Strategy for order limits
+INPUT2 ENUM_STRATEGY Meta_Formation_Strategy = STRAT_STDDEV;                            // Strategy for order limits
 INPUT2 ENUM_STG_META_FORMATION_TYPE Meta_Formation_Type = STG_META_FORMATION_TYPE_COS;  // Type of formation
-INPUT2 int Meta_Formation_Size = 2;   // Formation size (number of pending orders per side)
+INPUT2 int Meta_Formation_Size = 2;  // Formation size (number of pending orders per side)
 INPUT2_GROUP("Meta Formation strategy: common params");
 INPUT2 float Meta_Formation_LotSize = 0;                // Lot size
 INPUT2 int Meta_Formation_SignalOpenMethod = 0;         // Signal open method
