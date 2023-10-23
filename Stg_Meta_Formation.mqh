@@ -1,69 +1,90 @@
 /**
  * @file
- * Implements Order Limit meta strategy.
+ * Implements Formation meta strategy.
  */
 
 // Prevents processing this includes file multiple times.
-#ifndef STG_META_ORDER_LIMIT_MQH
-#define STG_META_ORDER_LIMIT_MQH
+#ifndef STG_META_FORMATION_MQH
+#define STG_META_FORMATION_MQH
+
+// Enums.
+enum ENUM_STG_META_FORMATION_TYPE {
+  STG_META_FORMATION_TYPE_COS,  // Cosine
+#ifdef __MQL5__
+  STG_META_FORMATION_TYPE_COSH,  // Cosine Hyperbolic
+#endif
+  STG_META_FORMATION_TYPE_SIN,  // Sine
+#ifdef __MQL5__
+  STG_META_FORMATION_TYPE_SINH,  // Sine Hyperbolic
+#endif
+};
 
 // User input params.
-INPUT2_GROUP("Meta Order Limit strategy: main params");
-INPUT2 ENUM_STRATEGY Meta_Order_Limit_Strategy = STRAT_DEMARKER;  // Strategy for order limits
-INPUT2_GROUP("Meta Order Limit strategy: common params");
-INPUT2 float Meta_Order_Limit_LotSize = 0;                // Lot size
-INPUT2 int Meta_Order_Limit_SignalOpenMethod = 0;         // Signal open method
-INPUT2 float Meta_Order_Limit_SignalOpenLevel = 0;        // Signal open level
-INPUT2 int Meta_Order_Limit_SignalOpenFilterMethod = 32;  // Signal open filter method
-INPUT2 int Meta_Order_Limit_SignalOpenFilterTime = 3;     // Signal open filter time (0-31)
-INPUT2 int Meta_Order_Limit_SignalOpenBoostMethod = 0;    // Signal open boost method
-INPUT2 int Meta_Order_Limit_SignalCloseMethod = 0;        // Signal close method
-INPUT2 int Meta_Order_Limit_SignalCloseFilter = 32;       // Signal close filter (-127-127)
-INPUT2 float Meta_Order_Limit_SignalCloseLevel = 0;       // Signal close level
-INPUT2 int Meta_Order_Limit_PriceStopMethod = 1;          // Price limit method
-INPUT2 float Meta_Order_Limit_PriceStopLevel = 2;         // Price limit level
-INPUT2 int Meta_Order_Limit_TickFilterMethod = 32;        // Tick filter method (0-255)
-INPUT2 float Meta_Order_Limit_MaxSpread = 4.0;            // Max spread to trade (in pips)
-INPUT2 short Meta_Order_Limit_Shift = 0;                  // Shift
-INPUT2 float Meta_Order_Limit_OrderCloseLoss = 200;       // Order close loss
-INPUT2 float Meta_Order_Limit_OrderCloseProfit = 200;     // Order close profit
-INPUT2 int Meta_Order_Limit_OrderCloseTime = 1440;        // Order close time in mins (>0) or bars (<0)
+INPUT2_GROUP("Meta Formation strategy: main params");
+INPUT2 ENUM_STRATEGY Meta_Formation_Strategy = STRAT_DEMARKER;                          // Strategy for order limits
+INPUT2 ENUM_STG_META_FORMATION_TYPE Meta_Formation_Type = STG_META_FORMATION_TYPE_COS;  // Type of formation
+INPUT2 int Meta_Formation_Size = 2;   // Formation size (number of pending orders per side)
+INPUT2_GROUP("Meta Formation strategy: common params");
+INPUT2 float Meta_Formation_LotSize = 0;                // Lot size
+INPUT2 int Meta_Formation_SignalOpenMethod = 0;         // Signal open method
+INPUT2 float Meta_Formation_SignalOpenLevel = 0;        // Signal open level
+INPUT2 int Meta_Formation_SignalOpenFilterMethod = 32;  // Signal open filter method
+INPUT2 int Meta_Formation_SignalOpenFilterTime = 3;     // Signal open filter time (0-31)
+INPUT2 int Meta_Formation_SignalOpenBoostMethod = 0;    // Signal open boost method
+INPUT2 int Meta_Formation_SignalCloseMethod = 0;        // Signal close method
+INPUT2 int Meta_Formation_SignalCloseFilter = 32;       // Signal close filter (-127-127)
+INPUT2 float Meta_Formation_SignalCloseLevel = 0;       // Signal close level
+INPUT2 int Meta_Formation_PriceStopMethod = 1;          // Price limit method
+INPUT2 float Meta_Formation_PriceStopLevel = 2;         // Price limit level
+INPUT2 int Meta_Formation_TickFilterMethod = 32;        // Tick filter method (0-255)
+INPUT2 float Meta_Formation_MaxSpread = 4.0;            // Max spread to trade (in pips)
+INPUT2 short Meta_Formation_Shift = 0;                  // Shift
+INPUT2 float Meta_Formation_OrderCloseLoss = 200;       // Order close loss
+INPUT2 float Meta_Formation_OrderCloseProfit = 200;     // Order close profit
+INPUT2 int Meta_Formation_OrderCloseTime = 1440;        // Order close time in mins (>0) or bars (<0)
 
 // Structs.
 // Defines struct with default user strategy values.
-struct Stg_Meta_Order_Limit_Params_Defaults : StgParams {
-  Stg_Meta_Order_Limit_Params_Defaults()
-      : StgParams(::Meta_Order_Limit_SignalOpenMethod, ::Meta_Order_Limit_SignalOpenFilterMethod,
-                  ::Meta_Order_Limit_SignalOpenLevel, ::Meta_Order_Limit_SignalOpenBoostMethod,
-                  ::Meta_Order_Limit_SignalCloseMethod, ::Meta_Order_Limit_SignalCloseFilter,
-                  ::Meta_Order_Limit_SignalCloseLevel, ::Meta_Order_Limit_PriceStopMethod,
-                  ::Meta_Order_Limit_PriceStopLevel, ::Meta_Order_Limit_TickFilterMethod, ::Meta_Order_Limit_MaxSpread,
-                  ::Meta_Order_Limit_Shift) {
-    Set(STRAT_PARAM_LS, ::Meta_Order_Limit_LotSize);
-    Set(STRAT_PARAM_OCL, ::Meta_Order_Limit_OrderCloseLoss);
-    Set(STRAT_PARAM_OCP, ::Meta_Order_Limit_OrderCloseProfit);
-    Set(STRAT_PARAM_OCT, ::Meta_Order_Limit_OrderCloseTime);
-    Set(STRAT_PARAM_SOFT, ::Meta_Order_Limit_SignalOpenFilterTime);
+struct Stg_Meta_Formation_Params_Defaults : StgParams {
+  Stg_Meta_Formation_Params_Defaults()
+      : StgParams(::Meta_Formation_SignalOpenMethod, ::Meta_Formation_SignalOpenFilterMethod,
+                  ::Meta_Formation_SignalOpenLevel, ::Meta_Formation_SignalOpenBoostMethod,
+                  ::Meta_Formation_SignalCloseMethod, ::Meta_Formation_SignalCloseFilter,
+                  ::Meta_Formation_SignalCloseLevel, ::Meta_Formation_PriceStopMethod, ::Meta_Formation_PriceStopLevel,
+                  ::Meta_Formation_TickFilterMethod, ::Meta_Formation_MaxSpread, ::Meta_Formation_Shift) {
+    Set(STRAT_PARAM_LS, ::Meta_Formation_LotSize);
+    Set(STRAT_PARAM_OCL, ::Meta_Formation_OrderCloseLoss);
+    Set(STRAT_PARAM_OCP, ::Meta_Formation_OrderCloseProfit);
+    Set(STRAT_PARAM_OCT, ::Meta_Formation_OrderCloseTime);
+    Set(STRAT_PARAM_SOFT, ::Meta_Formation_SignalOpenFilterTime);
   }
 };
 
-class Stg_Meta_Order_Limit : public Strategy {
+// Defines struct for formation entry.
+struct Stg_Meta_Formation_Entry {
+  bool needs_update;
+  double relative_price, target_price;
+  Ref<Order> order;
+};
+
+class Stg_Meta_Formation : public Strategy {
  protected:
+  DictStruct<int, Stg_Meta_Formation_Entry> formation_long, formation_short;
   DictStruct<long, Ref<Strategy>> strats;
   Trade strade;
 
  public:
-  Stg_Meta_Order_Limit(StgParams &_sparams, TradeParams &_tparams, ChartParams &_cparams, string _name = "")
+  Stg_Meta_Formation(StgParams &_sparams, TradeParams &_tparams, ChartParams &_cparams, string _name = "")
       : Strategy(_sparams, _tparams, _cparams, _name), strade(_tparams, _cparams) {}
 
-  static Stg_Meta_Order_Limit *Init(ENUM_TIMEFRAMES _tf = NULL, EA *_ea = NULL) {
+  static Stg_Meta_Formation *Init(ENUM_TIMEFRAMES _tf = NULL, EA *_ea = NULL) {
     // Initialize strategy initial values.
-    Stg_Meta_Order_Limit_Params_Defaults stg_meta_order_limit_defaults;
-    StgParams _stg_params(stg_meta_order_limit_defaults);
+    Stg_Meta_Formation_Params_Defaults stg_meta_formation_defaults;
+    StgParams _stg_params(stg_meta_formation_defaults);
     // Initialize Strategy instance.
     ChartParams _cparams(_tf, _Symbol);
     TradeParams _tparams;
-    Strategy *_strat = new Stg_Meta_Order_Limit(_stg_params, _tparams, _cparams, "(Meta) Order Limit");
+    Strategy *_strat = new Stg_Meta_Formation(_stg_params, _tparams, _cparams, "(Meta) Formation");
     return _strat;
   }
 
@@ -72,7 +93,7 @@ class Stg_Meta_Order_Limit : public Strategy {
    */
   void OnInit() {
     // Initialize strategies.
-    StrategyAdd(Meta_Order_Limit_Strategy, 0);
+    StrategyAdd(Meta_Formation_Strategy, 0);
   }
 
   /**
@@ -280,23 +301,13 @@ class Stg_Meta_Order_Limit : public Strategy {
   }
 
   /**
-   * Gets symbol.
-   */
-  string GetSymbol(int _index) {
-    int _total_symbols = SymbolsTotal(true);
-    return SymbolName(_index, true);
-  }
-
-  /**
    * Process a trade request.
    *
    * @return
    *   Returns true on successful request.
    */
-  virtual bool TradeRequest(ENUM_ORDER_TYPE _cmd, Strategy *_strat = NULL, int _shift = 0) {
+  virtual MqlTradeRequest TradeRequest(ENUM_ORDER_TYPE _cmd, double _offset, int _shift = 0) {
     bool _result = false;
-    double _offset =
-        strade.GetChart().GetPointSize() * 50;  // Offset from the current price to place the order in points.
     /*
     Ref<Strategy> _strat_ref = GetStrategy(_shift);
     if (!_strat_ref.IsSet()) {
@@ -322,8 +333,90 @@ class Stg_Meta_Order_Limit : public Strategy {
     OrderParams _oparams;
     /*_strat_ref.Ptr().*/ OnOrderOpen(_oparams);
     // Send the request.
-    _result = strade.RequestSend(_request, _oparams);
-    return _result;
+    //_result = strade.RequestSend(_request, _oparams);
+    return _request;
+  }
+
+  /**
+   * Updates a formation.
+   */
+  virtual void UpdateFormation() {
+    // Define the diameter and the number of points
+    int _num_points = ::Meta_Formation_Size;  // Number of points per diameter
+    // Calculates daily range.
+    int _shift = 0;
+    Chart *_chart = trade.GetChart();
+    ChartEntry _ohlc_d1_0 = _chart.GetEntry(PERIOD_D1, _shift, _chart.GetSymbol());
+    ChartEntry _ohlc_d1_1 = _chart.GetEntry(PERIOD_D1, _shift + 1, _chart.GetSymbol());
+    double _high0 = _chart.GetHigh(PERIOD_D1, _shift);
+    double _high1 = _chart.GetHigh(PERIOD_D1, _shift + 1);
+    double _low0 = _chart.GetLow(PERIOD_D1, _shift);
+    double _low1 = _chart.GetLow(PERIOD_D1, _shift + 1);
+    double _high = fmax(_high0, _high1);
+    double _low = fmin(_low0, _low1);
+    double _open = _chart.GetOpen(_shift);
+    double _range = (_high - _low);
+    // Calculate the coordinates
+    double _diameter = _range * 0.1;  // Desired diameter.
+    double _offset = _chart.GetPointSize() * 50;
+    for (int i = 0; i < _num_points; i++) {
+      double y;
+      Stg_Meta_Formation_Entry _fentry_long, _fentry_short;
+      if (formation_long.KeyExists(i)) {
+        _fentry_long = formation_long.GetByKey(i);
+      }
+      if (formation_short.KeyExists(i)) {
+        _fentry_short = formation_short.GetByKey(i);
+      }
+      switch (::Meta_Formation_Type) {
+        case STG_META_FORMATION_TYPE_COS:
+          y = _diameter / 2 + _diameter / 2.0 * cos(i * 1.0 * M_PI / _num_points);
+          break;
+#ifdef __MQL5__
+        case STG_META_FORMATION_TYPE_COSH:
+          y = _diameter / 2.0 * cosh(i * 1.0 * M_PI / _num_points);
+          break;
+#endif
+        case STG_META_FORMATION_TYPE_SIN:
+          y = _diameter / 1.0 * sin(i * 1.0 * M_PI / _num_points);
+          break;
+#ifdef __MQL5__
+        case STG_META_FORMATION_TYPE_SINH:
+          y = _diameter / 2.0 * sinh(i * 1.0 * M_PI / _num_points);
+          break;
+#endif
+        default:
+          y = 0.0;
+          break;
+      }
+      // Long formation
+      _fentry_long.relative_price = y;
+      _fentry_long.target_price = _chart.GetOpenOffer(ORDER_TYPE_BUY) + y + _offset;
+      MqlTradeRequest _request_long = TradeRequest(ORDER_TYPE_BUY, _fentry_long.relative_price, _shift);
+      if (!_fentry_long.order.IsSet()) {
+        _fentry_long.order = new Order(_request_long);
+        // _fentry_long.order = @todo;
+      } else {
+        MqlTradeResult _result_long;
+        _request_long.action = TRADE_ACTION_MODIFY;
+        _request_long.order = _fentry_long.order.Ptr().Get<long>(ORDER_PROP_TICKET);
+        _fentry_long.order.Ptr().OrderSend(_request_long, _result_long);
+      }
+      formation_long.Set(i, _fentry_long);
+      // Short formation.
+      _fentry_short.relative_price = y;
+      _fentry_short.target_price = _chart.GetOpenOffer(ORDER_TYPE_SELL) - y - _offset;
+      MqlTradeRequest _request_short = TradeRequest(ORDER_TYPE_SELL, _fentry_short.relative_price, _shift);
+      if (!_fentry_short.order.IsSet()) {
+        _fentry_short.order = new Order(_request_short);
+      } else {
+        MqlTradeResult _result_short;
+        _request_short.action = TRADE_ACTION_MODIFY;
+        _request_short.order = _fentry_short.order.Ptr().Get<long>(ORDER_PROP_TICKET);
+        _fentry_short.order.Ptr().OrderSend(_request_short, _result_short);
+      }
+      formation_short.Set(i, _fentry_short);
+    }
   }
 
   /**
@@ -332,6 +425,24 @@ class Stg_Meta_Order_Limit : public Strategy {
   virtual void OnOrderOpen(OrderParams &_oparams) {
     // @todo: EA31337-classes/issues/723
     Strategy::OnOrderOpen(_oparams);
+  }
+
+  /**
+   * Event on new time periods.
+   */
+  virtual void OnPeriod(unsigned int _periods = DATETIME_NONE) {
+    if ((_periods & DATETIME_MINUTE) != 0) {
+      // New minute started.
+      UpdateFormation();
+    }
+    if ((_periods & DATETIME_HOUR) != 0) {
+      // New hour started.
+    }
+    if ((_periods & DATETIME_DAY) != 0) {
+      // New day started.
+      formation_long.Clear();
+      formation_short.Clear();
+    }
   }
 
   /**
@@ -361,22 +472,24 @@ class Stg_Meta_Order_Limit : public Strategy {
    * Check strategy's opening signal.
    */
   bool SignalOpen(ENUM_ORDER_TYPE _cmd, int _method, float _level = 0.0f, int _shift = 0) {
-    bool _result = true, _result1 = false;
+    bool _result = true;
     // uint _ishift = _indi.GetShift();
     uint _ishift = _shift;
     // Process strategy.
     Ref<Strategy> _strat_ref = strats.GetByKey(0);
-    if (_strat_ref.IsSet()) {
-      _level = _level == 0.0f ? _strat_ref.Ptr().Get<float>(STRAT_PARAM_SOL) : _level;
-      _method = _method == 0 ? _strat_ref.Ptr().Get<int>(STRAT_PARAM_SOM) : _method;
-      _shift = _shift == 0 ? _strat_ref.Ptr().Get<int>(STRAT_PARAM_SHIFT) : _shift;
-      _result1 = _strat_ref.Ptr().SignalOpen(_cmd, _method, _level, _shift);
-      if (_result1) {
-        // @todo: Move to OnOrderOpen().
-        TradeRequest(_cmd, GetPointer(this), _shift);
-      }
+    if (!_strat_ref.IsSet()) {
+      // Returns false when strategy is not set.
+      return false;
     }
-    return _result && _result1;
+    _level = _level == 0.0f ? _strat_ref.Ptr().Get<float>(STRAT_PARAM_SOL) : _level;
+    _method = _method == 0 ? _strat_ref.Ptr().Get<int>(STRAT_PARAM_SOM) : _method;
+    _shift = _shift == 0 ? _strat_ref.Ptr().Get<int>(STRAT_PARAM_SHIFT) : _shift;
+    _result &= _strat_ref.Ptr().SignalOpen(_cmd, _method, _level, _shift);
+    if (_result) {
+      // @todo: Move to OnOrderOpen().
+      // TradeRequest(_cmd, GetPointer(this), _shift);
+    }
+    return _result;
   }
 
   /**
@@ -389,4 +502,4 @@ class Stg_Meta_Order_Limit : public Strategy {
   }
 };
 
-#endif  // STG_META_ORDER_LIMIT_MQH
+#endif  // STG_META_FORMATION_MQH
