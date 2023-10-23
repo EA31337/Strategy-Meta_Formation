@@ -10,9 +10,13 @@
 // Enums.
 enum ENUM_STG_META_FORMATION_TYPE {
   STG_META_FORMATION_TYPE_COS,   // Cosine
+#ifdef __MQL5__
   STG_META_FORMATION_TYPE_COSH,  // Cosine Hyperbolic
+#endif
   STG_META_FORMATION_TYPE_SIN,   // Sine
+#ifdef __MQL5__
   STG_META_FORMATION_TYPE_SINH,  // Sine Hyperbolic
+#endif
 };
 
 // User input params.
@@ -352,15 +356,20 @@ class Stg_Meta_Formation : public Strategy {
         case STG_META_FORMATION_TYPE_COS:
           y = _diameter / 2 + _diameter / 2.0 * cos(i * 1.0 * M_PI / _num_points);
           break;
+#ifdef __MQL5__
+
         case STG_META_FORMATION_TYPE_COSH:
           y = _diameter / 2.0 * cosh(i * 1.0 * M_PI / _num_points);
           break;
+#endif
         case STG_META_FORMATION_TYPE_SIN:
           y = _diameter / 1.0 * sin(i * 1.0 * M_PI / _num_points);
           break;
+#ifdef __MQL5__
         case STG_META_FORMATION_TYPE_SINH:
           y = _diameter / 2.0 * sinh(i * 1.0 * M_PI / _num_points);
           break;
+#endif
         default:
           y = 0.0;
           break;
