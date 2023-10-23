@@ -9,11 +9,11 @@
 
 // Enums.
 enum ENUM_STG_META_FORMATION_TYPE {
-  STG_META_FORMATION_TYPE_COS,   // Cosine
+  STG_META_FORMATION_TYPE_COS,  // Cosine
 #ifdef __MQL5__
   STG_META_FORMATION_TYPE_COSH,  // Cosine Hyperbolic
 #endif
-  STG_META_FORMATION_TYPE_SIN,   // Sine
+  STG_META_FORMATION_TYPE_SIN,  // Sine
 #ifdef __MQL5__
   STG_META_FORMATION_TYPE_SINH,  // Sine Hyperbolic
 #endif
@@ -64,7 +64,7 @@ struct Stg_Meta_Formation_Params_Defaults : StgParams {
 struct Stg_Meta_Formation_Entry {
   bool needs_update;
   double relative_price, target_price;
-  Order *_order;
+  Ref<Order> order;
 };
 
 class Stg_Meta_Formation : public Strategy {
@@ -306,10 +306,8 @@ class Stg_Meta_Formation : public Strategy {
    * @return
    *   Returns true on successful request.
    */
-  virtual bool TradeRequest(ENUM_ORDER_TYPE _cmd, int _shift = 0) {
+  virtual MqlTradeRequest TradeRequest(ENUM_ORDER_TYPE _cmd, double _offset, int _shift = 0) {
     bool _result = false;
-    double _offset =
-        strade.GetChart().GetPointSize() * 50;  // Offset from the current price to place the order in points.
     /*
     Ref<Strategy> _strat_ref = GetStrategy(_shift);
     if (!_strat_ref.IsSet()) {
@@ -335,29 +333,46 @@ class Stg_Meta_Formation : public Strategy {
     OrderParams _oparams;
     /*_strat_ref.Ptr().*/ OnOrderOpen(_oparams);
     // Send the request.
-    _result = strade.RequestSend(_request, _oparams);
-    return _result;
+    //_result = strade.RequestSend(_request, _oparams);
+    return _request;
   }
 
   /**
    * Updates a formation.
-   *
    */
   virtual void UpdateFormation() {
-    double coordinates_y[11];
     // Define the diameter and the number of points
-    double _diameter = 10.0;                  // Change this to the desired diameter
     int _num_points = ::Meta_Formation_Size;  // Number of points per diameter
+    // Calculates daily range.
+    int _shift = 0;
+    Chart *_chart = trade.GetChart();
+    ChartEntry _ohlc_d1_0 = _chart.GetEntry(PERIOD_D1, _shift, _chart.GetSymbol());
+    ChartEntry _ohlc_d1_1 = _chart.GetEntry(PERIOD_D1, _shift + 1, _chart.GetSymbol());
+    double _high0 = _chart.GetHigh(PERIOD_D1, _shift);
+    double _high1 = _chart.GetHigh(PERIOD_D1, _shift + 1);
+    double _low0 = _chart.GetLow(PERIOD_D1, _shift);
+    double _low1 = _chart.GetLow(PERIOD_D1, _shift + 1);
+    double _high = fmax(_high0, _high1);
+    double _low = fmin(_low0, _low1);
+    double _open = _chart.GetOpen(_shift);
+    double _range = (_high - _low);
     // Calculate the coordinates
+    double _diameter = _range * 0.1;  // Desired diameter.
+    double _offset = _chart.GetPointSize() * 20;
     for (int i = 0; i < _num_points; i++) {
       double y;
       Stg_Meta_Formation_Entry _fentry_long, _fentry_short;
+      if (formation_long.KeyExists(i)) {
+        _fentry_long = formation_long.GetByKey(i);
+      }
+      if (formation_short.KeyExists(i)) {
+        _fentry_short = formation_short.GetByKey(i);
+      }
       switch (::Meta_Formation_Type) {
         case STG_META_FORMATION_TYPE_COS:
           y = _diameter / 2 + _diameter / 2.0 * cos(i * 1.0 * M_PI / _num_points);
           break;
 #ifdef __MQL5__
-
         case STG_META_FORMATION_TYPE_COSH:
           y = _diameter / 2.0 * cosh(i * 1.0 * M_PI / _num_points);
           break;
@@ -374,11 +389,33 @@ class Stg_Meta_Formation : public Strategy {
           y = 0.0;
           break;
       }
+      // Long formation
       _fentry_long.relative_price = y;
-      _fentry_short.relative_price = -y;
+      _fentry_long.target_price = _chart.GetOpenOffer(ORDER_TYPE_BUY) + y + _offset;
+      MqlTradeRequest _request_long = TradeRequest(ORDER_TYPE_BUY, _fentry_long.relative_price, _shift);
+      if (!_fentry_long.order.IsSet()) {
+        _fentry_long.order = new Order(_request_long);
+        // _fentry_long.order = @todo;
+      } else {
+        MqlTradeResult _result_long;
+        _request_long.action = TRADE_ACTION_MODIFY;
+        _request_long.order = _fentry_long.order.Ptr().Get<long>(ORDER_PROP_TICKET);
+        _fentry_long.order.Ptr().OrderSend(_request_long, _result_long);
+      }
       formation_long.Set(i, _fentry_long);
+      // Short formation.
+      _fentry_short.relative_price = y;
+      _fentry_short.target_price = _chart.GetOpenOffer(ORDER_TYPE_SELL) - y - _offset;
+      MqlTradeRequest _request_short = TradeRequest(ORDER_TYPE_SELL, _fentry_short.relative_price, _shift);
+      if (!_fentry_short.order.IsSet()) {
+        _fentry_short.order = new Order(_request_short);
+      } else {
+        MqlTradeResult _result_short;
+        _request_short.action = TRADE_ACTION_MODIFY;
+        _request_short.order = _fentry_short.order.Ptr().Get<long>(ORDER_PROP_TICKET);
+        _fentry_short.order.Ptr().OrderSend(_request_short, _result_short);
+      }
       formation_short.Set(i, _fentry_short);
-      continue;
     }
   }
 
@@ -403,6 +440,8 @@ class Stg_Meta_Formation : public Strategy {
     }
     if ((_periods & DATETIME_DAY) != 0) {
       // New day started.
+      formation_long.Clear();
+      formation_short.Clear();
     }
   }
 
