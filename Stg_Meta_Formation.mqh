@@ -23,7 +23,7 @@ enum ENUM_STG_META_FORMATION_TYPE {
 INPUT2_GROUP("Meta Formation strategy: main params");
 INPUT2 ENUM_STRATEGY Meta_Formation_Strategy = STRAT_DEMARKER;                          // Strategy for order limits
 INPUT2 ENUM_STG_META_FORMATION_TYPE Meta_Formation_Type = STG_META_FORMATION_TYPE_COS;  // Type of formation
-INPUT2 int Meta_Formation_Size = 10;  // Formation size (number of pending orders per side)
+INPUT2 int Meta_Formation_Size = 2;   // Formation size (number of pending orders per side)
 INPUT2_GROUP("Meta Formation strategy: common params");
 INPUT2 float Meta_Formation_LotSize = 0;                // Lot size
 INPUT2 int Meta_Formation_SignalOpenMethod = 0;         // Signal open method
@@ -358,7 +358,7 @@ class Stg_Meta_Formation : public Strategy {
     double _range = (_high - _low);
     // Calculate the coordinates
     double _diameter = _range * 0.1;  // Desired diameter.
-    double _offset = _chart.GetPointSize() * 20;
+    double _offset = _chart.GetPointSize() * 50;
     for (int i = 0; i < _num_points; i++) {
       double y;
       Stg_Meta_Formation_Entry _fentry_long, _fentry_short;
