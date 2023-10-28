@@ -24,24 +24,24 @@ INPUT2_GROUP("Meta Formation strategy: main params");
 INPUT2 ENUM_STRATEGY Meta_Formation_Strategy = STRAT_STDDEV;                            // Strategy for order limits
 INPUT2 ENUM_STG_META_FORMATION_TYPE Meta_Formation_Type = STG_META_FORMATION_TYPE_COS;  // Type of formation
 INPUT2 int Meta_Formation_Size = 2;  // Formation size (number of pending orders per side)
-INPUT2_GROUP("Meta Formation strategy: common params");
-INPUT2 float Meta_Formation_LotSize = 0;                // Lot size
-INPUT2 int Meta_Formation_SignalOpenMethod = 0;         // Signal open method
-INPUT2 float Meta_Formation_SignalOpenLevel = 0;        // Signal open level
-INPUT2 int Meta_Formation_SignalOpenFilterMethod = 32;  // Signal open filter method
-INPUT2 int Meta_Formation_SignalOpenFilterTime = 3;     // Signal open filter time (0-31)
-INPUT2 int Meta_Formation_SignalOpenBoostMethod = 0;    // Signal open boost method
-INPUT2 int Meta_Formation_SignalCloseMethod = 0;        // Signal close method
-INPUT2 int Meta_Formation_SignalCloseFilter = 32;       // Signal close filter (-127-127)
-INPUT2 float Meta_Formation_SignalCloseLevel = 0;       // Signal close level
-INPUT2 int Meta_Formation_PriceStopMethod = 1;          // Price limit method
-INPUT2 float Meta_Formation_PriceStopLevel = 2;         // Price limit level
-INPUT2 int Meta_Formation_TickFilterMethod = 32;        // Tick filter method (0-255)
-INPUT2 float Meta_Formation_MaxSpread = 4.0;            // Max spread to trade (in pips)
-INPUT2 short Meta_Formation_Shift = 0;                  // Shift
-INPUT2 float Meta_Formation_OrderCloseLoss = 200;       // Order close loss
-INPUT2 float Meta_Formation_OrderCloseProfit = 200;     // Order close profit
-INPUT2 int Meta_Formation_OrderCloseTime = 1440;        // Order close time in mins (>0) or bars (<0)
+INPUT3_GROUP("Meta Formation strategy: common params");
+INPUT3 float Meta_Formation_LotSize = 0;                // Lot size
+INPUT3 int Meta_Formation_SignalOpenMethod = 0;         // Signal open method
+INPUT3 float Meta_Formation_SignalOpenLevel = 0;        // Signal open level
+INPUT3 int Meta_Formation_SignalOpenFilterMethod = 32;  // Signal open filter method
+INPUT3 int Meta_Formation_SignalOpenFilterTime = 3;     // Signal open filter time (0-31)
+INPUT3 int Meta_Formation_SignalOpenBoostMethod = 0;    // Signal open boost method
+INPUT3 int Meta_Formation_SignalCloseMethod = 0;        // Signal close method
+INPUT3 int Meta_Formation_SignalCloseFilter = 32;       // Signal close filter (-127-127)
+INPUT3 float Meta_Formation_SignalCloseLevel = 0;       // Signal close level
+INPUT3 int Meta_Formation_PriceStopMethod = 1;          // Price limit method
+INPUT3 float Meta_Formation_PriceStopLevel = 2;         // Price limit level
+INPUT3 int Meta_Formation_TickFilterMethod = 32;        // Tick filter method (0-255)
+INPUT3 float Meta_Formation_MaxSpread = 4.0;            // Max spread to trade (in pips)
+INPUT3 short Meta_Formation_Shift = 0;                  // Shift
+INPUT3 float Meta_Formation_OrderCloseLoss = 200;       // Order close loss
+INPUT3 float Meta_Formation_OrderCloseProfit = 200;     // Order close profit
+INPUT3 int Meta_Formation_OrderCloseTime = 1440;        // Order close time in mins (>0) or bars (<0)
 
 // Structs.
 // Defines struct with default user strategy values.
